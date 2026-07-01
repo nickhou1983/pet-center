@@ -59,7 +59,10 @@ cp .env.example .env
 # 3. 启动 PostgreSQL + pgvector 容器
 docker compose up -d
 
-# 4. 启动开发服务器
+# 4. 应用数据库迁移（创建 pets 表、vector(512) 列与 ivfflat 索引）
+npm run db:deploy
+
+# 5. 启动开发服务器
 npm run dev
 ```
 
@@ -71,11 +74,7 @@ npm run dev
 postgresql://petcenter:petcenter@localhost:5432/petcenter
 ```
 
-pgvector 官方镜像已内置 `vector` 扩展，按需在数据库中启用：
-
-```bash
-docker compose exec db psql -U petcenter -d petcenter -c "CREATE EXTENSION IF NOT EXISTS vector;"
-```
+pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `CREATE EXTENSION IF NOT EXISTS "vector"`（见 `prisma/migrations/`），因此无需手动启用。
 
 ## 📁 目录结构
 
@@ -83,14 +82,18 @@ docker compose exec db psql -U petcenter -d petcenter -c "CREATE EXTENSION IF NO
 app/                 # Next.js App Router 页面与 API 路由（Node runtime）
 components/           # 共享 React 组件
 lib/                 # 共享工具与客户端封装
-prisma/              # Prisma schema（数据模型见 M2）
+prisma/              # Prisma schema、枚举与迁移（Pet 模型 + pgvector）
 public/              # 静态资源（uploads/ 为运行时用户上传目录）
 docker-compose.yml   # 本地 PostgreSQL + pgvector
 ```
 
 ## 🚧 项目状态
 
-**M1 · 基础设施与项目脚手架已完成**：Next.js 14 + TypeScript + Tailwind CSS + ESLint 脚手架、pgvector 数据库环境、环境变量与全局布局均已就绪。后续按模块 Issue（M2+）推进。
+**M1 · 基础设施与项目脚手架已完成**：Next.js 14 + TypeScript + Tailwind CSS + ESLint 脚手架、pgvector 数据库环境、环境变量与全局布局均已就绪。
+
+**M2 · 数据层与数据模型已完成**：Prisma `Pet` 模型与枚举（category / species / size / gender / status）、`pets` 表迁移、`imageEmbedding vector(512)` 列与 `ivfflat` 余弦索引均已就绪；`lib/prisma.ts` 提供连接单例，`lib/vector.ts` 封装向量序列化与 `$queryRaw` 相似度检索（`imageEmbedding` 为 `Unsupported("vector(512)")`，读写走 `$queryRaw` / `$executeRaw`）。
+
+后续按模块 Issue（M3+）推进。
 
 ## 📄 License
 

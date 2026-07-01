@@ -1,15 +1,88 @@
-// Prisma schema — M1 minimal setup.
+// Prisma schema — M2 数据层与数据模型.
 //
-// Only the generator and datasource are defined here to wire up DATABASE_URL.
-// All data models are introduced in M2 (数据层与数据模型).
-// pgvector configuration (postgresqlExtensions preview feature + the `vector`
-// extension) is also handled in M2 when the models that need it are added.
+// Defines the Pet data model, its enums, and the pgvector image embedding
+// column. The `vector` type is not natively supported by Prisma, so the
+// `imageEmbedding` column is declared as `Unsupported("vector(512)")` — Prisma
+// tracks the column (so migrations don't drift/drop it) but it cannot be
+// selected through the generated Client. Read/write the embedding via
+// `$queryRaw` / `$executeRaw` (see lib/vector.ts). The pgvector extension is
+// managed through the `postgresqlExtensions` preview feature + `extensions`.
+// The ivfflat cosine index is added via raw SQL inside the migration.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+/// 信息类别：备案 / 走失 / 捡到 / 领养
+enum PetCategory {
+  REGISTERED
+  LOST
+  FOUND
+  ADOPTION
+}
+
+/// 物种
+enum Species {
+  DOG
+  CAT
+  OTHER
+}
+
+/// 体型
+enum PetSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+/// 性别
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+/// 记录状态：进行中 / 已解决 / 已归档
+enum PetStatus {
+  ACTIVE
+  RESOLVED
+  ARCHIVED
+}
+
+model Pet {
+  id       String      @id @default(cuid())
+  category PetCategory
+  species  Species
+  size     PetSize?
+  gender   Gender      @default(UNKNOWN)
+  status   PetStatus   @default(ACTIVE)
+
+  name        String?
+  breed       String?
+  color       String?
+  age         Int? // 年龄（岁）
+  region      String?
+  description String?
+  photos      String[] @default([])
+
+  contactName  String?
+  contactPhone String?
+
+  /// CLIP 图像向量（512 维）。Prisma 不原生支持 vector 类型，读写走 $queryRaw / $executeRaw。
+  imageEmbedding Unsupported("vector(512)")?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, status])
+  @@index([species])
+  @@index([region])
+  @@map("pets")
 }
