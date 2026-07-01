@@ -1,0 +1,22 @@
+# Local PostgreSQL with pgvector for Pet Center.
+# The pgvector/pgvector image ships the `vector` extension pre-installed;
+# it just needs to be enabled per-database via `CREATE EXTENSION vector`.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: pet-center-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: petcenter
+      POSTGRES_PASSWORD: petcenter
+      POSTGRES_DB: petcenter
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petcenter -d petcenter"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
