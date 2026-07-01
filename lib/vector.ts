@@ -71,16 +71,19 @@ export interface EmbeddingMatch {
 
 /**
  * Find the pets whose image embedding is closest to `vector` by cosine
- * distance. Optionally scope the search with an extra SQL predicate (e.g. a
- * `WHERE` fragment built with `Prisma.sql`) for attribute filtering.
+ * distance. Optionally scope the search with `andFilter`: an additional
+ * predicate that is composed onto the built-in `WHERE "imageEmbedding" IS NOT
+ * NULL` clause, so it MUST be `AND`-prefixed. Build it with `Prisma.sql` to
+ * keep values parameterized, e.g.
+ * `` Prisma.sql`AND "species" = ${species}::"Species"` ``.
  */
 export async function findNearestByEmbedding(
   vector: number[],
   limit = 10,
-  where?: Prisma.Sql,
+  andFilter?: Prisma.Sql,
 ): Promise<EmbeddingMatch[]> {
   const literal = toVectorLiteral(vector);
-  const filter = where ?? Prisma.empty;
+  const filter = andFilter ?? Prisma.empty;
   const rows = await prisma.$queryRaw<EmbeddingMatch[]>`
     SELECT "id", ("imageEmbedding" <=> ${literal}::vector) AS "distance"
     FROM "pets"
