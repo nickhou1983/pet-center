@@ -42,9 +42,55 @@ CLIP 将**图片**与**文字**投影到同一 512 维向量空间，因此：
 
 详见仓库 [Issues](../../issues)（含依赖关系图与实施批次）。
 
+## 🚀 本地开发
+
+### 环境要求
+- Node.js 18+（推荐 20 / 22）
+- Docker + Docker Compose
+
+### 快速开始
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 配置环境变量（复制模板）
+cp .env.example .env
+
+# 3. 启动 PostgreSQL + pgvector 容器
+docker compose up -d
+
+# 4. 启动开发服务器
+npm run dev
+```
+
+访问 http://localhost:3000 查看首页；`GET /api/health` 可用于健康检查。
+
+数据库默认连接（见 `.env.example` 与 `docker-compose.yml`）：
+
+```
+postgresql://petcenter:petcenter@localhost:5432/petcenter
+```
+
+pgvector 官方镜像已内置 `vector` 扩展，按需在数据库中启用：
+
+```bash
+docker compose exec db psql -U petcenter -d petcenter -c "CREATE EXTENSION IF NOT EXISTS vector;"
+```
+
+## 📁 目录结构
+
+```
+app/                 # Next.js App Router 页面与 API 路由（Node runtime）
+components/           # 共享 React 组件
+lib/                 # 共享工具与客户端封装
+prisma/              # Prisma schema（数据模型见 M2）
+public/              # 静态资源（uploads/ 为运行时用户上传目录）
+docker-compose.yml   # 本地 PostgreSQL + pgvector
+```
+
 ## 🚧 项目状态
 
-初始化阶段。代码脚手架（M1）尚未落地，欢迎按模块 Issue 推进。
+**M1 · 基础设施与项目脚手架已完成**：Next.js 14 + TypeScript + Tailwind CSS + ESLint 脚手架、pgvector 数据库环境、环境变量与全局布局均已就绪。后续按模块 Issue（M2+）推进。
 
 ## 📄 License
 

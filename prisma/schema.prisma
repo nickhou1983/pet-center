@@ -1,0 +1,15 @@
+// Prisma schema — M1 minimal setup.
+//
+// Only the generator and datasource are defined here to wire up DATABASE_URL.
+// All data models are introduced in M2 (数据层与数据模型).
+// pgvector configuration (postgresqlExtensions preview feature + the `vector`
+// extension) is also handled in M2 when the models that need it are added.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
