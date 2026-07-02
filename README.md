@@ -139,6 +139,41 @@ curl -X POST http://localhost:3000/api/pets \
   -d '{"category":"LOST","species":"DOG","photos":["/uploads/xxxx.jpg"],"region":"上海"}'
 ```
 
+### `POST /api/search`
+
+混合搜索：用**照片**和/或**文字描述**，结合**属性筛选 + 向量相似度**从宠物库召回最匹配的记录，
+按匹配分数降序返回并分页。查询照片同样先经 `POST /api/upload` 拿到 `/uploads/*` 路径，再放入 JSON body
+（复用 `lib/pet-photos.ts` 做路径穿越防护）。
+
+CLIP 为跨模态：宠物只入库**图像向量**（`imageEmbedding`），查询图向量与查询文本向量都对同一列做
+pgvector 余弦距离 `<=>` 比较（`score = 1 - distance`）。融合分数在 SQL 内计算以保证 DB 侧排序与分页正确：
+`score = wImage·imageScore + wText·textScore`。
+
+- **请求**：`application/json`
+  - `photo`（`/uploads/*`，可选）与 `description`（可选）**至少填一项**
+  - `wImage`、`wText`（可选，默认 `0.5`/`0.5`；仅两路都有时生效，提交时归一化为总和 1）
+  - 属性筛选（均可选）：`category`、`species`、`size`、`gender`（枚举精确匹配）、`breed`、`color`、`region`（大小写不敏感子串匹配）
+  - `page`（默认 1）、`pageSize`（默认 20，上限 50）
+- **模式**（由输入自动判定）：仅照片 → `image`（图搜图）；仅描述 → `text`（文搜图）；两者皆有 → `fusion`（加权融合）
+- **成功响应** `200`：`{ "mode", "weights": { "image", "text" }, "page", "pageSize", "total", "results": [...] }`
+  - `results[]`：`{ "id", "category", "species", "size", "gender", "name", "breed", "color", "region", "photos", "score", "imageScore", "textScore" }`（未参与的模态其分数为 `null`）
+- **错误响应**（JSON `{ "error", "code", ... }`）：
+  - `400 INVALID_REQUEST` — 请求体不是合法 JSON
+  - `400 VALIDATION_ERROR` — 字段校验失败，附 `fieldErrors` / `formErrors`（含「至少填一项」）
+  - `400 INVALID_PHOTO` / `404 PHOTO_NOT_FOUND` — 查询照片路径非法 / 文件不存在
+  - `502 EMBEDDING_FAILED` — 向量生成失败（首次会下载 ~300MB CLIP 模型，较慢）
+  - `500 DB_ERROR` — 查询失败
+
+搜索页 `/search` 是受控表单，复用同一份 zod 校验模式（`lib/search-schema.ts`）在前后端一致校验：上传查询照片、
+输入描述、设置属性筛选（默认类别为「备案」）、在两路输入都存在时调节融合权重滑块，结果以卡片网格展示
+（缩略图 / 类别·物种标签 / 关键信息 / 匹配分数徽标 / 逐模态图搜·文搜分数 / 跳转 `/pets/[id]`）并支持分页。
+
+```bash
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"description":"橘白色的小型田园猫","category":"REGISTERED","page":1,"pageSize":20}'
+```
+
 ## 📁 目录结构
 
 ```
@@ -162,7 +197,9 @@ docker-compose.yml   # 本地 PostgreSQL + pgvector
 
 **M5 · 发布模块已完成**：`POST /api/pets` 接收 JSON（结构化字段 + `/uploads/*` 图片路径），用共享 zod 校验模式（`lib/pet-schema.ts`）在前后端一致校验，对首图经 CLIP 生成 512 维向量，并在**同一事务**内写入记录与向量列（`$executeRaw ... ::vector`）。发布页 `/publish` 为受控表单（分类切换、属性字段、多图上传对接 `/api/upload`、描述与联系方式、提交态 loading 与字段级错误提示），成功后跳转最小详情页 `/pets/[id]`；入库记录 `imageEmbedding` 非空且维度=512。`lib/pet-photos.ts` 负责把 `/uploads/*` 路径安全解析到磁盘（拒绝穿越/越权读取）；`lib/pet-schema.ts` / `lib/pet-photos.ts` 均有 Vitest 单元测试覆盖。
 
-后续按模块 Issue（M6+）推进。
+**M6 · 混合搜索模块已完成**：`POST /api/search` 接收 JSON（`/uploads/*` 查询照片和/或文字描述 + 属性筛选 + 分页），用共享 zod 校验模式（`lib/search-schema.ts`）前后端一致校验。查询图/文经 CLIP 生成 512 维向量，均对宠物的 `imageEmbedding` 列做 pgvector 余弦相似度（`<=>`，`score = 1 - distance`）；融合分数在 SQL 内按权重计算，保证 DB 侧 `ORDER BY score DESC` 与 `LIMIT/OFFSET` 分页正确，并返回逐模态 `imageScore`/`textScore`。模式由输入自动判定（图搜图 / 文搜图 / 加权融合），权重经 `resolveWeights` 归一化（`lib/pet-search.ts` 构建全参数化的筛选与排序 SQL，杜绝注入；枚举精确匹配、自由文本 `ILIKE` 转义通配符）。搜索页 `/search` 为受控表单（照片上传、描述、属性筛选[默认类别「备案」]、两路输入时显示融合权重滑块、结果卡片网格与分页），首页新增「智能搜索」入口。`lib/search-schema.ts` / `lib/pet-search.ts` / `components/search/SearchForm.tsx` 均有 Vitest 单元测试覆盖。
+
+后续按模块 Issue（M7+）推进。
 
 ## 📄 License
 
