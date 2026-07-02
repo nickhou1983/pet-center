@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR #28 · M6 混合搜索模块 · 宠物中心平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        header .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        main {
+            padding: 60px 40px;
+        }
+
+        section {
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        p {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            font-size: 0.95em;
+            margin-bottom: 0;
+        }
+
+        .icon {
+            display: inline-block;
+            font-size: 1.8em;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .modes-showcase {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 2px solid #e8ebff;
+        }
+
+        .mode-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .mode-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .mode-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .mode-description {
+            flex: 1;
+        }
+
+        .mode-description strong {
+            color: #667eea;
+        }
+
+        .api-section {
+            background: #1e1e1e;
+            color: #e8e8e8;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .api-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .keyword {
+            color: #569cd6;
+        }
+
+        .string {
+            color: #ce9178;
+        }
+
+        .number {
+            color: #b5cea8;
+        }
+
+        .benefits {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+
+        .benefits ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .benefits li {
+            padding: 12px 0 12px 35px;
+            position: relative;
+            font-size: 1.05em;
+        }
+
+        .benefits li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .tech-badge {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .example-section {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 2px solid #e8ebff;
+        }
+
+        .example-title {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        footer {
+            background: #f5f6f8;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .pr-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 15px 0;
+        }
+
+        .pr-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        footer p {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 40px 25px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            main {
+                padding: 30px 20px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h2 {
+                font-size: 1.4em;
+            }
+
+            .mode-row {
+                flex-direction: column;
+            }
+
+            .api-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 M6 混合搜索模块</h1>
+            <p class="subtitle">用照片 + 文字描述自动匹配，从宠物库智能召回最相似的记录</p>
+            <div class="badge">PR #28 · 功能展示</div>
+        </header>
+
+        <main>
+            <!-- 核心介绍 -->
+            <section>
+                <h2>什么是混合搜索？为什么需要它？</h2>
+                <p>
+                    传统搜索靠关键词精确匹配，难以处理模糊查询。<strong>混合搜索</strong>结合<strong>图像相似度</strong>和<strong>文本语义</strong>理解，
+                    让用户用「上传一张照片」或「描述一下这只宠物」就能秒速找到最匹配的记录。无论是寻找走失宠物、查找领养对象，
+                    还是浏览已备案宠物，都能用最自然的方式搜索。
+                </p>
+            </section>
+
+            <!-- 核心能力 -->
+            <section>
+                <h2>核心能力亮点</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3><span class="icon">📷</span>图像相似度</h3>
+                        <p>上传宠物照片，系统自动用 CLIP 向量引擎对比，从宠物库找出视觉最相似的记录。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="icon">📝</span>文本语义理解</h3>
+                        <p>输入「橘白色的小型田园猫」这样的自然语言描述，AI 理解语义后精准匹配。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="icon">🎯</span>融合加权搜索</h3>
+                        <p>同时用图片和文字？系统自动计算加权融合分数，取两者优势得到最佳结果。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3><span class="icon">🏷️</span>属性精筛</h3>
+                        <p>结合物种、大小、性别、地区等属性过滤，搜索结果更聚焦，分页展示便于浏览。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 三种搜索模式 -->
+            <section>
+                <h2>三种自适应搜索模式</h2>
+                <p>根据用户输入自动判定，无需手动切换：</p>
+                <div class="modes-showcase">
+                    <div class="mode-row">
+                        <div class="mode-badge">图搜图</div>
+                        <div class="mode-description">
+                            <strong>仅上传照片</strong> → 系统用 CLIP 提取图像特征，对宠物库中每只宠物的图像向量做<strong>余弦相似度</strong>比较，
+                            返回视觉最相近的 TOP-N 宠物记录。
+                        </div>
+                    </div>
+                    <div class="mode-row">
+                        <div class="mode-badge">文搜图</div>
+                        <div class="mode-description">
+                            <strong>仅输入文字</strong> → 文本向量化后，对宠物库的图像向量做相似度对比（CLIP 的跨模态能力）。
+                            例如「三花母猫」描述会匹配到三色花纹的宠物照片。
+                        </div>
+                    </div>
+                    <div class="mode-row">
+                        <div class="mode-badge">融合搜索</div>
+                        <div class="mode-description">
+                            <strong>图片 + 文字都有</strong> → 分别获得两路分数，按用户调节的权重（默认各 50%）加权融合。
+                            系统自动<strong>在数据库内完成计算与排序</strong>，保证分页结果准确。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 技术核心 -->
+            <section>
+                <h2>技术实现亮点</h2>
+                <p>深度集成 PostgreSQL pgvector + CLIP 跨模态向量引擎：</p>
+                <div class="benefits">
+                    <ul>
+                        <li><strong>矢量化在 SQL 内</strong> — 融合分数直接在数据库计算（`score = wImage·imageScore + wText·textScore`），
+                            保证 `ORDER BY score DESC` 与 `LIMIT/OFFSET` 分页的准确性</li>
+                        <li><strong>安全的参数化查询</strong> — 所有 SQL 均用 `Prisma.sql` 参数化，文本筛选自动转义通配符，
+                            完全杜绝 SQL 注入</li>
+                        <li><strong>零新依赖</strong> — 不新增第三方包，复用现有 M2 数据层 / M3 CLIP 向量能力</li>
+                        <li><strong>前后端统一校验** — 共享 zod 模式（`lib/search-schema.ts`），确保类型安全与一致性</li>
+                        <li><strong>跨模态魔法</strong> — CLIP 同时理解图像和文本，用同一列向量对比，实现图文互搜</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- API 契约示例 -->
+            <section>
+                <h2>API 契约详解</h2>
+                <div class="example-section">
+                    <div class="example-title">📤 请求示例</div>
+                    <div class="api-section">
+                        <h3>POST /api/search</h3>
+                        <div class="code-block"><span class="keyword">curl</span> -X <span class="keyword">POST</span> http://localhost:<span class="number">3000</span>/api/search \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+  "description": "橘白色的小型田园猫",
+  "category": "REGISTERED",
+  "species": "CAT",
+  "size": "SMALL",
+  "page": 1,
+  "pageSize": 20
+}'</span></div>
+                    </div>
+                </div>
+
+                <div class="example-section">
+                    <div class="example-title">📥 响应示例 (200 OK)</div>
+                    <div class="api-section">
+                        <div class="code-block"><span class="keyword">{</span>
+  <span class="string">"mode"</span>: <span class="string">"text"</span>,
+  <span class="string">"weights"</span>: <span class="keyword">{</span> <span class="string">"image"</span>: <span class="number">0</span>, <span class="string">"text"</span>: <span class="number">1</span> <span class="keyword">}</span>,
+  <span class="string">"page"</span>: <span class="number">1</span>,
+  <span class="string">"pageSize"</span>: <span class="number">20</span>,
+  <span class="string">"total"</span>: <span class="number">5</span>,
+  <span class="string">"results"</span>: <span class="keyword">[</span>
+    <span class="keyword">{</span>
+      <span class="string">"id"</span>: <span class="string">"pet-001"</span>,
+      <span class="string">"name"</span>: <span class="string">"橘橘"</span>,
+      <span class="string">"species"</span>: <span class="string">"CAT"</span>,
+      <span class="string">"size"</span>: <span class="string">"SMALL"</span>,
+      <span class="string">"score"</span>: <span class="number">0.92</span>,
+      <span class="string">"imageScore"</span>: <span class="number">null</span>,
+      <span class="string">"textScore"</span>: <span class="number">0.92</span>
+    <span class="keyword">}</span>
+  <span class="keyword">]</span>
+<span class="keyword">}</span></div>
+                    </div>
+                </div>
+
+                <div class="benefits" style="margin-top: 30px;">
+                    <div class="example-title" style="margin-top: 0;">支持的字段与错误码</div>
+                    <ul>
+                        <li><strong>查询输入</strong>：`photo`（`/uploads/*` 路径）、`description`（文本）—— <strong>至少填一项</strong></li>
+                        <li><strong>权重调节</strong>：`wImage`、`wText`（默认 0.5/0.5，两路都有时自动归一化）</li>
+                        <li><strong>属性筛选</strong>：`category`、`species`、`size`、`gender`（枚举精确匹配）；
+                            `breed`、`color`、`region`（大小写不敏感子串）</li>
+                        <li><strong>分页</strong>：`page`（默认 1）、`pageSize`（默认 20，上限 50）</li>
+                        <li><strong>错误响应</strong>：`400 VALIDATION_ERROR`（校验失败）、`400 INVALID_PHOTO`（照片路径不合法）、
+                            `502 EMBEDDING_FAILED`（向量生成失败）、`500 DB_ERROR`（查询失败）</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 使用场景 -->
+            <section>
+                <h2>实际应用场景</h2>
+                <div class="benefits">
+                    <ul>
+                        <li><strong>🐱 寻找走失宠物</strong> — 拍一张似曾相识的野猫/野狗照片，或描述其特征，立即搜索是否有走失记录</li>
+                        <li><strong>🏠 领养前查重</strong> — 上传想领养的宠物照片，检查是否已在其他平台/渠道有记录</li>
+                        <li><strong>📋 备案查询</strong> — 输入「黑白边牧」「大型黄金猎犬」等描述词，快速定位已备案的宠物信息</li>
+                        <li><strong>🎓 数据分析</strong> — 基于搜索热度和匹配分数，了解用户对宠物的兴趣分布和特征偏好</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 技术栈 -->
+            <section>
+                <h2>技术栈</h2>
+                <p>构建在以下成熟技术基础之上：</p>
+                <div class="tech-stack">
+                    <div class="tech-badge">PostgreSQL + pgvector</div>
+                    <div class="tech-badge">CLIP 向量引擎</div>
+                    <div class="tech-badge">余弦相似度</div>
+                    <div class="tech-badge">Prisma ORM</div>
+                    <div class="tech-badge">Next.js API</div>
+                    <div class="tech-badge">React 表单</div>
+                    <div class="tech-badge">Zod 校验</div>
+                    <div class="tech-badge">TypeScript</div>
+                </div>
+            </section>
+
+            <!-- 质量保证 -->
+            <section>
+                <h2>质量保证</h2>
+                <div class="benefits">
+                    <ul>
+                        <li>✅ <strong>161 单元测试通过</strong>（`search-schema` / `pet-search` / `SearchForm` 测试）</li>
+                        <li>✅ <strong>ESLint 零警告</strong> — 代码风格达成一致</li>
+                        <li>✅ <strong>类型检查通过</strong> — 完全的 TypeScript 覆盖</li>
+                        <li>✅ <strong>编译成功</strong> — 产出 `/api/search`（动态）与 `/search`（静态）</li>
+                        <li>✅ <strong>数据库安全</strong> — 参数化查询，零 SQL 注入风险</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 后续可能 -->
+            <section>
+                <h2>未来演进方向</h2>
+                <p>当前原型设计已支持从小到大的扩展：</p>
+                <div class="benefits">
+                    <ul>
+                        <li>📊 <strong>索引优化</strong> — 数据量增大时，可针对单向量模式添加 IVFFlat 索引加速</li>
+                        <li>🎨 <strong>个性化推荐</strong> — 基于搜索历史和匹配分数做用户偏好学习</li>
+                        <li>🔄 <strong>增量更新</strong> — 动态更新向量库，支持实时新增宠物记录</li>
+                        <li>🌍 <strong>多语言支持</strong> — CLIP 天生支持多语言，文本搜索可扩展到英文、日文等</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p><strong>PR #28</strong> · feat(m6): 混合搜索模块（照片 + 描述自动匹配）</p>
+            <p>仓库：<code>nickhou1983/pet-center</code></p>
+            <a href="https://github.com/nickhou1983/pet-center/pull/28" class="pr-link" target="_blank" rel="noopener noreferrer">
+                查看完整 PR 详情 →
+            </a>
+        </footer>
+    </div>
+</body>
+</html>
