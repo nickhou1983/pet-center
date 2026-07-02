@@ -16,7 +16,8 @@ import { EMBEDDING_DIM, cosineSimilarity } from "@/lib/vector";
 //      (cross-modal semantic alignment);
 //   3. the model is loaded once — a warm call after load is much faster.
 //
-// Probe your own inputs with query params, e.g.
+// Probe your own inputs with query params (non-production only — see the guard
+// in GET), e.g.
 //   /api/vector?text=a%20small%20brown%20dog
 //   /api/vector?image=https://.../photo.jpg
 //   /api/vector?text=a%20cat&image=https://.../cat.jpg   (returns their similarity)
@@ -181,6 +182,24 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const text = searchParams.get("text");
   const image = searchParams.get("image");
+
+  // The ?text=/?image= probe encodes caller-supplied input; the image probe in
+  // particular fetches an arbitrary URL server-side (RawImage.fromURL), which
+  // would be a server-side request forgery (SSRF) vector on a public deployment
+  // — a caller could target internal addresses (cloud metadata, other internal
+  // services) or oversized responses to exhaust resources. Restrict the probe to
+  // non-production; the fixed-sample self-test (trusted SAMPLES only, no
+  // user-controlled fetch) stays available everywhere.
+  if ((text || image) && process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      {
+        status: "forbidden",
+        message:
+          "The ?text=/?image= probe is disabled in production. Call GET /api/vector with no query params to run the fixed-sample self-test.",
+      },
+      { status: 403 },
+    );
+  }
 
   try {
     const payload =
