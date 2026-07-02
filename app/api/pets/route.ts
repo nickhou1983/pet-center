@@ -1,10 +1,22 @@
 import { readFile } from "node:fs/promises";
 
+import { type Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { getImageEmbedding } from "@/lib/clip";
 import { resolvePhotoFile } from "@/lib/pet-photos";
-import { createPetSchema, type CreatePetInput } from "@/lib/pet-schema";
+import {
+  createPetSchema,
+  type CreatePetInput,
+  PET_CATEGORIES,
+  SPECIES,
+  PET_SIZES,
+  GENDERS,
+  type PetCategoryValue,
+  type SpeciesValue,
+  type PetSizeValue,
+  type GenderValue,
+} from "@/lib/pet-schema";
 import { prisma } from "@/lib/prisma";
 import { EMBEDDING_DIM, toVectorLiteral } from "@/lib/vector";
 
@@ -22,6 +34,108 @@ function errorResponse(
   details?: Record<string, unknown>,
 ) {
   return NextResponse.json({ error, code, ...details }, { status });
+}
+
+/** Maximum results per page for GET /api/pets. */
+const MAX_PAGE_SIZE = 50;
+/** Default results per page for GET /api/pets. */
+const DEFAULT_PAGE_SIZE = 12;
+
+const PET_STATUSES = ["ACTIVE", "RESOLVED", "ARCHIVED"] as const;
+type PetStatusValue = (typeof PET_STATUSES)[number];
+
+/**
+ * GET /api/pets — list pets with optional filters and pagination.
+ *
+ * Query parameters (all optional):
+ *  - `category`  — one of REGISTERED / LOST / FOUND / ADOPTION
+ *  - `species`   — one of DOG / CAT / OTHER
+ *  - `size`      — one of SMALL / MEDIUM / LARGE
+ *  - `gender`    — one of MALE / FEMALE / UNKNOWN
+ *  - `region`    — free text; matches pets whose region contains the value (case-insensitive)
+ *  - `status`    — one of ACTIVE / RESOLVED / ARCHIVED (default: ACTIVE)
+ *  - `page`      — 1-based page number (default: 1)
+ *  - `pageSize`  — items per page, capped at 50 (default: 12)
+ *
+ * Returns `{ pets, pagination: { total, page, pageSize, totalPages } }`.
+ */
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  // --- parse and validate enum filters ---
+  const rawCategory = searchParams.get("category");
+  const rawSpecies = searchParams.get("species");
+  const rawSize = searchParams.get("size");
+  const rawGender = searchParams.get("gender");
+  const rawStatus = searchParams.get("status") ?? "ACTIVE";
+  const rawRegion = searchParams.get("region");
+
+  // --- parse pagination ---
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const pageSize = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, parseInt(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE),
+  );
+
+  const where: Prisma.PetWhereInput = {};
+
+  if (rawCategory && (PET_CATEGORIES as readonly string[]).includes(rawCategory)) {
+    where.category = rawCategory as PetCategoryValue;
+  }
+  if (rawSpecies && (SPECIES as readonly string[]).includes(rawSpecies)) {
+    where.species = rawSpecies as SpeciesValue;
+  }
+  if (rawSize && (PET_SIZES as readonly string[]).includes(rawSize)) {
+    where.size = rawSize as PetSizeValue;
+  }
+  if (rawGender && (GENDERS as readonly string[]).includes(rawGender)) {
+    where.gender = rawGender as GenderValue;
+  }
+  if (rawStatus && (PET_STATUSES as readonly string[]).includes(rawStatus)) {
+    where.status = rawStatus as PetStatusValue;
+  }
+  if (rawRegion && rawRegion.trim()) {
+    where.region = { contains: rawRegion.trim(), mode: "insensitive" };
+  }
+
+  try {
+    const [total, pets] = await Promise.all([
+      prisma.pet.count({ where }),
+      prisma.pet.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          category: true,
+          species: true,
+          size: true,
+          gender: true,
+          status: true,
+          name: true,
+          breed: true,
+          color: true,
+          age: true,
+          region: true,
+          photos: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      pets,
+      pagination: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    });
+  } catch {
+    return errorResponse(500, "DB_ERROR", "获取宠物列表失败，请稍后重试");
+  }
 }
 
 export async function POST(request: Request) {
