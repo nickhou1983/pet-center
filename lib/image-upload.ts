@@ -1,13 +1,13 @@
 // Image upload validation.
 //
-// An allow-list of raster formats (JPEG / PNG / WebP) validated by BOTH the
-// client-declared MIME type and the file's magic bytes (signature), plus size
-// limits. Signature sniffing prevents a client from spoofing the content type
-// by renaming a file or setting a bogus `Content-Type`. This module is
-// intentionally free of any storage backend or HTTP framework so it is trivial
-// to unit test.
+// An allow-list of raster formats (JPEG / PNG / WebP) validated by the file's
+// magic bytes (signature) plus size limits. Signature sniffing is authoritative:
+// the client-declared MIME type is intentionally not trusted, so a client cannot
+// spoof the content type by renaming a file or setting a bogus `Content-Type`.
+// This module is intentionally free of any storage backend or HTTP framework so
+// it is trivial to unit test.
 
-/** Client-declared MIME type -> canonical extension for accepted formats. */
+/** Canonical (magic-byte-sniffed) MIME type -> extension for accepted formats. */
 export const ALLOWED_IMAGE_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
