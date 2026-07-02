@@ -29,9 +29,17 @@ describe("PublishForm", () => {
       expect(screen.getByRole("button", { name: /捡到/ })).toBeTruthy();
       expect(screen.getByRole("button", { name: /领养/ })).toBeTruthy();
 
-      // Check for required field indicators
-      expect(screen.getByText(/物种.*\*/)).toBeTruthy();
-      expect(screen.getByText(/照片.*\*/)).toBeTruthy();
+      // Check for required field indicators. The "*" marker is rendered as a
+      // sibling <span>, so a single-text-node match can't see "物种 *" together;
+      // match against the whole <label> element's text content instead.
+      const requiredLabel = (label: string) =>
+        screen.getByText(
+          (_content, el) =>
+            el?.tagName === "LABEL" &&
+            new RegExp(`${label}\\s*\\*`).test(el.textContent ?? ""),
+        );
+      expect(requiredLabel("物种")).toBeTruthy();
+      expect(requiredLabel("照片")).toBeTruthy();
 
       // Check for form submit button
       expect(screen.getByRole("button", { name: /发布/ })).toBeTruthy();

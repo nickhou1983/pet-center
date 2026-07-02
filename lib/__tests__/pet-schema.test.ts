@@ -64,6 +64,16 @@ describe("createPetSchema", () => {
     expect(fieldErrors({ ...validMinimal, photos: ["a.jpg"] }).photos).toBeDefined();
   });
 
+  it("rejects uploads paths that traverse or don't point at a file", () => {
+    expect(
+      fieldErrors({ ...validMinimal, photos: ["/uploads/../secret.txt"] }).photos,
+    ).toBeDefined();
+    expect(
+      fieldErrors({ ...validMinimal, photos: ["/uploads/nested/../../etc/passwd"] }).photos,
+    ).toBeDefined();
+    expect(fieldErrors({ ...validMinimal, photos: ["/uploads/evil/"] }).photos).toBeDefined();
+  });
+
   it("trims optional text and treats blank as omitted", () => {
     const result = createPetSchema.safeParse({
       ...validMinimal,
@@ -88,6 +98,19 @@ describe("createPetSchema", () => {
     expect(fieldErrors({ ...validMinimal, age: "3.5" }).age).toBeDefined();
     expect(fieldErrors({ ...validMinimal, age: "-1" }).age).toBeDefined();
     expect(fieldErrors({ ...validMinimal, age: "200" }).age).toBeDefined();
+  });
+
+  it("treats null optional values as omitted instead of coercing them", () => {
+    // z.coerce.number()(null) would silently become 0; null must mean "not provided".
+    const result = createPetSchema.safeParse({
+      ...validMinimal,
+      age: null,
+      name: null,
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.age).toBeUndefined();
+    expect(result.data.name).toBeUndefined();
   });
 
   it("accepts a fully populated, valid record", () => {

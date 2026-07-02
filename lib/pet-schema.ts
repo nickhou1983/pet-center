@@ -38,11 +38,17 @@ export const MAX_PHOTOS = 10;
  */
 export const uploadPathSchema = z
   .string()
-  .regex(/^\/uploads\/[A-Za-z0-9._/-]+$/, "非法的图片路径");
+  .regex(/^\/uploads\/[A-Za-z0-9._/-]+$/, "非法的图片路径")
+  .refine(
+    (path) => !path.endsWith("/") && !path.split("/").includes(".."),
+    "非法的图片路径",
+  );
 
-/** Treat empty/whitespace-only strings as "not provided" for optional fields. */
+/** Treat `null` and empty/whitespace-only strings as "not provided" for optional fields. */
 const emptyToUndefined = (value: unknown) =>
-  typeof value === "string" && value.trim() === "" ? undefined : value;
+  value === null || (typeof value === "string" && value.trim() === "")
+    ? undefined
+    : value;
 
 /** Optional short free-text field: trimmed, non-empty when present. */
 const optionalText = (max = 200) =>
