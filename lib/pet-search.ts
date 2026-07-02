@@ -127,6 +127,11 @@ function similaritySql(vector: number[]): Prisma.Sql {
  * Rank pets by similarity to the query image and/or text, scoped by attribute
  * filters, ordered by descending fused score, with `LIMIT`/`OFFSET` paging.
  * Requires at least one of `imageVector` / `textVector`.
+ *
+ * The sort adds `"id"` as a unique tiebreaker after the score: many rows can
+ * share an identical (or ranked-equal) score, and without a total order Postgres
+ * may return tied rows in a different order per request, making `LIMIT`/`OFFSET`
+ * pagination non-deterministic (a pet could repeat across pages or be skipped).
  */
 export async function hybridSearch(
   params: HybridSearchParams,
@@ -160,7 +165,7 @@ export async function hybridSearch(
     FROM "pets"
     WHERE "imageEmbedding" IS NOT NULL
     ${filterClause(filters)}
-    ORDER BY "score" DESC
+    ORDER BY "score" DESC, "id" ASC
     LIMIT ${limit} OFFSET ${offset}
   `;
 }
