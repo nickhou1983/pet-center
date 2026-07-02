@@ -298,7 +298,7 @@ describe("SearchForm", () => {
     const page2Response = {
       ...multiPageResponse,
       json: async () => ({
-        ...multiPageResponse.json(),
+        ...(await multiPageResponse.json()),
         page: 2,
         results: [
           {
