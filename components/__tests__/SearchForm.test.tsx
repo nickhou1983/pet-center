@@ -183,10 +183,13 @@ describe("SearchForm", () => {
     // or we can test that the mode display works after a fusion search succeeds.
     fireEvent.click(screen.getByRole("button", { name: /搜索/ }));
 
+    // The mode label ("图文融合") renders in its own <span>, while the weights
+    // render as direct text of the <p>. Testing-library's getByText only matches
+    // a single element's direct text nodes, so assert each part separately.
     await waitFor(() =>
-      expect(screen.getByText(/模式.*图文融合/)).toBeInTheDocument(),
+      expect(screen.getByText("图文融合")).toBeInTheDocument(),
     );
-    expect(screen.getByText(/图.*0.6.*文.*0.4/)).toBeInTheDocument();
+    expect(screen.getByText(/图 0\.60 \/ 文 0\.40/)).toBeInTheDocument();
   });
 
   it("displays error message when the search fails with a 400 validation error", async () => {
@@ -203,10 +206,9 @@ describe("SearchForm", () => {
     });
 
     render(<SearchForm />);
-    await userEvent.type(
-      screen.getByLabelText(/描述/),
-      "a".repeat(2001), // Exceed max length
-    );
+    // Use a valid description so client-side validation passes and the request
+    // is actually sent; the mocked 400 response then drives the error banner.
+    await userEvent.type(screen.getByLabelText(/描述/), "orange tabby");
     fireEvent.click(screen.getByRole("button", { name: /搜索/ }));
 
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
@@ -269,8 +271,10 @@ describe("SearchForm", () => {
         mode: "text",
         weights: { image: 0, text: 1 },
         page: 1,
-        pageSize: 1, // 1 result per page to test paging
-        total: 2,
+        pageSize: 20,
+        // total spans 2 pages at the client's DEFAULT_PAGE_SIZE (20), so the
+        // "下一页" pagination control renders.
+        total: 40,
         results: [
           {
             id: "pet-1",

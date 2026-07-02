@@ -73,7 +73,7 @@ describe("ResultCard", () => {
 
   it("shows metadata (breed, color, size, region) in the footer", () => {
     render(<ResultCard result={mockResult} />);
-    expect(screen.getByText(/橘猫.*橘白色.*小体型.*上海/)).toBeInTheDocument();
+    expect(screen.getByText(/橘猫.*橘白色.*小型.*上海/)).toBeInTheDocument();
   });
 
   it("uses category+species label as fallback when name is null", () => {
@@ -136,7 +136,7 @@ describe("ResultCard", () => {
     };
     render(<ResultCard result={resultPartialMeta} />);
     // Only size should be shown since others are null/empty.
-    expect(screen.getByText(/小体型/)).toBeInTheDocument();
+    expect(screen.getByText(/小型/)).toBeInTheDocument();
     expect(screen.queryByText("橘猫")).not.toBeInTheDocument();
   });
 });

@@ -6,12 +6,14 @@
 // end-to-end behavior of searchRequestSchema and hybridSearch tested elsewhere.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextResponse } from "next/server";
 
 // Mock all the dependencies before importing the route handler.
-vi.mock("node:fs/promises", () => ({
-  readFile: vi.fn(),
-}));
+vi.mock("node:fs/promises", () => {
+  const readFile = vi.fn();
+  // Provide both the named export (the route uses `import { readFile }`) and a
+  // `default` so vitest's ESM interop for the node builtin resolves cleanly.
+  return { readFile, default: { readFile } };
+});
 
 vi.mock("@/lib/clip", () => ({
   getImageEmbedding: vi.fn(),
@@ -97,13 +99,16 @@ describe("POST /api/search", () => {
     expect(data.code).toBe("VALIDATION_ERROR");
   });
 
-  it("returns INVALID_PHOTO when the photo path resolves to null (traversal attempt)", async () => {
+  it("returns INVALID_PHOTO when resolvePhotoFile rejects the path (returns null)", async () => {
+    // A schema-valid /uploads path that the filesystem resolver refuses (e.g. a
+    // traversal it neutralizes) surfaces as INVALID_PHOTO. The path must pass the
+    // zod schema first, so it cannot literally contain "..".
     vi.mocked(resolvePhotoFile).mockReturnValue(null);
 
     const request = new Request("http://localhost/api/search", {
       method: "POST",
       body: JSON.stringify({
-        photo: "/uploads/../secret.txt",
+        photo: "/uploads/secret.txt",
       }),
     });
 
