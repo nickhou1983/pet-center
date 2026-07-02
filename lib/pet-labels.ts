@@ -1,3 +1,5 @@
+import type { PetStatus } from "@prisma/client";
+
 import type {
   GenderValue,
   PetCategoryValue,
@@ -6,8 +8,8 @@ import type {
 } from "./pet-schema";
 
 // Chinese display labels for the Pet enums. Shared by the publish form and the
-// detail page so the two never diverge. Client-safe (only depends on the enum
-// value types from pet-schema).
+// detail page so the two never diverge. Client-safe: it only imports enum value
+// *types* (from pet-schema and Prisma), which are erased at build time.
 
 export const CATEGORY_LABELS: Record<PetCategoryValue, string> = {
   REGISTERED: "备案",
@@ -34,8 +36,8 @@ export const GENDER_LABELS: Record<GenderValue, string> = {
   UNKNOWN: "未知",
 };
 
-/** Status values mirror the Prisma `PetStatus` enum. */
-export const STATUS_LABELS: Record<string, string> = {
+/** Keyed by the Prisma `PetStatus` enum so a missing or renamed status fails to compile. */
+export const STATUS_LABELS: Record<PetStatus, string> = {
   ACTIVE: "进行中",
   RESOLVED: "已解决",
   ARCHIVED: "已归档",

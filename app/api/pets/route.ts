@@ -24,10 +24,6 @@ function errorResponse(
   return NextResponse.json({ error, code, ...details }, { status });
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -59,16 +55,14 @@ export async function POST(request: Request) {
   let literal: string;
   try {
     const vector = await getImageEmbedding(buffer);
-    if (vector.length !== EMBEDDING_DIM) {
-      throw new Error(
-        `Expected embedding of length ${EMBEDDING_DIM}, received ${vector.length}.`,
-      );
-    }
+    // toVectorLiteral validates the dimension (and rejects non-finite values),
+    // so there is no separate length check to keep in sync here.
     literal = toVectorLiteral(vector);
   } catch (error) {
-    return errorResponse(502, "EMBEDDING_FAILED", "向量生成失败，请稍后重试", {
-      message: errorMessage(error),
-    });
+    // Log the underlying cause server-side but never return it to the client:
+    // it can expose file paths, dependency versions, or stack details.
+    console.error("[POST /api/pets] embedding generation failed:", error);
+    return errorResponse(502, "EMBEDDING_FAILED", "向量生成失败，请稍后重试");
   }
 
   try {
