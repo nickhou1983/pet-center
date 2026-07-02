@@ -1,3 +1,7 @@
+// This file is AI-generated for testing storage.ts (M5).
+// Unit tests for the LocalStorageProvider: directory initialization, file write/read,
+// and cleanup.
+
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
