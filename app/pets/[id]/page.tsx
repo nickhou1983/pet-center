@@ -10,6 +10,7 @@ import {
   SPECIES_LABELS,
   STATUS_LABELS,
 } from "@/lib/pet-labels";
+import { buildDetailTitle, formatAge, isPresent } from "@/lib/pet-detail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,10 +22,6 @@ const genderLabels = GENDER_LABELS;
 const sizeLabels = SIZE_LABELS;
 const speciesLabels = SPECIES_LABELS;
 const statusLabels = STATUS_LABELS;
-
-function isPresent(value: string | number | null | undefined) {
-  return value !== null && value !== undefined && value !== "";
-}
 
 export default async function PetDetailPage({
   params,
@@ -51,18 +48,18 @@ export default async function PetDetailPage({
   }
 
   const photos = pet.photos ?? [];
-  const title =
-    pet.name ??
-    [categoryLabels[pet.category], speciesLabels[pet.species]]
-      .filter(Boolean)
-      .join(" · ");
+  const title = buildDetailTitle(
+    pet.name,
+    categoryLabels[pet.category],
+    speciesLabels[pet.species],
+  );
   const attributes = [
     ["物种", speciesLabels[pet.species]],
     ["品种", pet.breed],
     ["颜色", pet.color],
     ["体型", pet.size ? sizeLabels[pet.size] : null],
     ["性别", genderLabels[pet.gender]],
-    ["年龄", pet.age !== null ? `${pet.age} 岁` : null],
+    ["年龄", formatAge(pet.age)],
     ["地区", pet.region],
     ["名字", pet.name],
   ].filter(([, value]) => isPresent(value));
