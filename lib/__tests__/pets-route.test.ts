@@ -1,4 +1,5 @@
-// Tests for the importable logic behind POST /api/pets (M5): the shared
+// This file is AI-generated for testing POST /api/pets route logic (M5).
+// Tests for the importable logic behind POST /api/pets: the shared
 // `createPetSchema` validation contract and the `pet-photos` upload-path guard.
 //
 // The route handler itself wires together filesystem reads, CLIP inference and a

@@ -1,13 +1,14 @@
+// This file is AI-generated for testing pet-photos.ts (M5).
+// Unit tests for the server-only photo-path resolver. The security-relevant
+// behavior is that only paths under the public uploads prefix that resolve
+// *inside* UPLOADS_DIR are accepted; traversal and non-uploads paths return null.
+
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import { isUploadPath, resolvePhotoFile } from "../pet-photos";
 import { UPLOADS_DIR } from "../storage";
-
-// Unit tests for the server-only photo-path resolver (M5). The security-relevant
-// behavior is that only paths under the public uploads prefix that resolve
-// *inside* UPLOADS_DIR are accepted; traversal and non-uploads paths return null
 // so `POST /api/pets` can never read arbitrary local files.
 
 describe("isUploadPath", () => {

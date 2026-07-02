@@ -1,3 +1,7 @@
+// This file is AI-generated for testing image-upload.ts (M5).
+// Unit tests for image validation: format sniffing (JPEG, PNG, WebP, GIF),
+// size checks, and type allowlisting.
+
 import { describe, expect, it } from "vitest";
 
 import {
