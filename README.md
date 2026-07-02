@@ -76,6 +76,41 @@ postgresql://petcenter:petcenter@localhost:5432/petcenter
 
 pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `CREATE EXTENSION IF NOT EXISTS "vector"`（见 `prisma/migrations/`），因此无需手动启用。
 
+## 🔌 API 接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/health` | 健康检查 |
+| `POST` | `/api/upload` | 图片上传（`multipart/form-data`） |
+
+### `POST /api/upload`
+
+上传一张或多张图片，保存到 `public/uploads/` 并返回可访问 URL，供发布模块（M5）保存宠物照片。
+
+- **请求**：`multipart/form-data`，字段名 `files`（可重复以支持多图上传）
+- **支持格式**：JPEG / PNG / WebP（以文件 magic bytes 签名为准校验，不信任客户端声明的 MIME）
+- **限制**：单文件默认 5 MB、单次请求默认 10 个文件（可用 `UPLOAD_MAX_FILE_SIZE_BYTES` / `UPLOAD_MAX_FILES` 覆盖）
+- **成功响应** `201`：
+  ```json
+  {
+    "files": [
+      { "url": "/uploads/<uuid>.jpg", "filename": "<uuid>.jpg", "size": 12345, "type": "image/jpeg" }
+    ]
+  }
+  ```
+- **错误响应**（JSON `{ "error", "code", "filename?" }`）：
+  - `400` — 未提供文件 / 超过数量上限 / 空文件 / 非 `multipart/form-data` 请求
+  - `413` — 单文件超过大小上限
+  - `415` — 不支持的类型（文件字节不是受支持的图片格式）
+
+校验为原子操作：任一文件不合法则整批拒绝，不写入任何文件。文件名使用 UUID 生成以避免冲突；存储通过 `lib/storage.ts` 的 `StorageProvider` 抽象，后续可平滑替换为对象存储（S3/OSS）。
+
+> 返回的 `/uploads/*` URL 经 `next.config.mjs` 的 `beforeFiles` 重写交由 `app/api/media/[...path]/route.ts` 提供，因此运行时上传的文件在 `next dev` 与 `next start` 下均可访问（`next start` 会在启动时快照 `public/` 清单，静态方式无法读取启动后新增的文件）。该路由也是后续切换到对象存储的接入点。
+
+```bash
+curl -F "files=@cat.jpg" -F "files=@dog.png" http://localhost:3000/api/upload
+```
+
 ## 📁 目录结构
 
 ```
@@ -93,7 +128,9 @@ docker-compose.yml   # 本地 PostgreSQL + pgvector
 
 **M2 · 数据层与数据模型已完成**：Prisma `Pet` 模型与枚举（category / species / size / gender / status）、`pets` 表迁移、`imageEmbedding vector(512)` 列与 `ivfflat` 余弦索引均已就绪；`lib/prisma.ts` 提供连接单例，`lib/vector.ts` 封装向量序列化与 `$queryRaw` 相似度检索（`imageEmbedding` 为 `Unsupported("vector(512)")`，读写走 `$queryRaw` / `$executeRaw`）。
 
-后续按模块 Issue（M3+）推进。
+**M4 · 图片存储服务已完成**：`POST /api/upload` 支持 `multipart/form-data` 多图上传，按 JPEG / PNG / WebP 白名单（以 magic bytes 文件签名为准校验，不信任客户端声明的 MIME）及大小/数量上限校验，使用 UUID 文件名保存至 `public/uploads/` 并返回可访问 URL；`lib/storage.ts` 提供可平滑替换为对象存储（S3/OSS）的 `StorageProvider` 抽象，`lib/image-upload.ts` 封装校验逻辑，均有 Vitest 单元测试覆盖（`npm run test`）。
+
+后续按模块 Issue 推进。
 
 ## 📄 License
 
