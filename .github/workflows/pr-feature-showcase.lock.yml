@@ -19,18 +19,16 @@
 #   gh aw compile
 # For more information: https://github.com/github/gh-aw/blob/main/.github/aw/github-agentic-workflows.md
 #
-# 每次 PR 新建/更新时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，
+# 每次 PR 新建时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，
 # 用一个独立 PR 承载该 HTML，并在原 PR 上评论链接。
 #
-# frontmatter-hash: 71e0dc81dadd59d70d249152b4e587437ff0ad12906d5c9b04001ec9cf5991cd
+# frontmatter-hash: 4477fa38444583295dde5b3b978caf0e96194bc7bcb2ebaa911eda0f488ce690
 
 name: "PR 功能展示页生成器"
 "on":
   pull_request:
     types:
     - opened
-    - synchronize
-    - reopened
 
 permissions: {}
 
@@ -956,7 +954,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           WORKFLOW_NAME: "PR 功能展示页生成器"
-          WORKFLOW_DESCRIPTION: "每次 PR 新建/更新时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，\n用一个独立 PR 承载该 HTML，并在原 PR 上评论链接。"
+          WORKFLOW_DESCRIPTION: "每次 PR 新建时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，\n用一个独立 PR 承载该 HTML，并在原 PR 上评论链接。"
           HAS_PATCH: ${{ needs.agent.outputs.has_patch }}
         with:
           script: |
@@ -1113,7 +1111,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
-          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"create_pull_request\":{\"base_branch\":\"${{ github.ref_name }}\",\"draft\":true,\"labels\":[\"documentation\",\"showcase\"],\"max\":1,\"max_patch_size\":1024,\"title_prefix\":\"[feature-showcase] \"},\"missing_data\":{},\"missing_tool\":{}}"
+          GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"add_comment\":{\"max\":1},\"create_pull_request\":{\"base_branch\":\"main\",\"draft\":true,\"labels\":[\"documentation\",\"showcase\"],\"max\":1,\"max_patch_size\":1024,\"title_prefix\":\"[feature-showcase] \"},\"missing_data\":{},\"missing_tool\":{}}"
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |

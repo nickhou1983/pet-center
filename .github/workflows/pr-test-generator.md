@@ -37,13 +37,12 @@ timeout-minutes: 25
 步骤：
 
 1. 若存在 `AGENTS.md`，先阅读并遵循其约定。
-2. 找出本 PR 的变更文件（把 PR 分支与其基分支做对比；基分支名可用
-   `gh pr view ${{ github.event.pull_request.number }} --json baseRefName -q .baseRefName` 或 GitHub 工具查询获取）。
+2. 用 GitHub 工具（`pull_requests` toolset）找出本 PR #${{ github.event.pull_request.number }} 的变更文件与基分支名（baseRefName）。
+   注意：agent 沙箱内没有 GitHub 凭证，请勿依赖 `gh` CLI。
    只关注变更的、可测试的源码文件（`.ts`/`.tsx`，如 `lib/`、`app/`、`components/` 下的工具函数与组件）；
    忽略文档、配置、`prisma/`、lock 文件、生成代码和纯样式改动。
-3. 检查是否已配置测试框架：若 `package.json` 中没有测试运行器，则搭建 **Vitest**——
-   安装 `vitest`、`@testing-library/react`、`@testing-library/jest-dom`、`jsdom` 等 devDependencies，
-   添加最小的 `vitest.config.ts`（jsdom 环境）和 `"test": "vitest run"` 脚本；已存在则复用现有配置。
+3. 本仓库已配置 **Vitest**（根目录有 `vitest.config.ts`，`npm test` 即 `vitest run`）——直接复用现有配置、
+   测试风格与目录布局（如 `lib/__tests__/`）；仅当配置意外缺失时，才补齐最小的 `vitest.config.ts`（jsdom 环境）与相关 devDependencies。
 4. 先跑一次测试建立绿色基线；若因无关原因失败，记录说明并谨慎继续。
 5. 为变更代码编写聚焦、有意义的单测：覆盖新增/改动的函数、分支、边界与错误路径；
    复用仓库既有测试风格与目录布局；不测第三方代码；不得为通过而弱化断言。

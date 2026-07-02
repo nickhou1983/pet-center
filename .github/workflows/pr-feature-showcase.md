@@ -1,11 +1,11 @@
 ---
 description: |
-  每次 PR 新建/更新时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，
+  每次 PR 新建时，分析 PR 新增的功能，生成一个自包含的 HTML 展示页，
   用一个独立 PR 承载该 HTML，并在原 PR 上评论链接。
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened]
 
 permissions: read-all
 
@@ -19,6 +19,7 @@ tools:
 
 safe-outputs:
   create-pull-request:
+    base-branch: main
     draft: true
     title-prefix: "[feature-showcase] "
     labels: [documentation, showcase]
@@ -36,9 +37,9 @@ timeout-minutes: 20
 
 步骤：
 
-1. 阅读 PR 标题、描述，以及变更 diff（可用 `gh pr diff ${{ github.event.pull_request.number }}` 获取 PR 分支与其基分支的差异；
-   基分支名可用 `gh pr view ${{ github.event.pull_request.number }} --json baseRefName -q .baseRefName` 获取），
-   理解本次新增的面向用户的功能或能力。
+1. 用 GitHub 工具（`pull_requests` toolset）读取 PR #${{ github.event.pull_request.number }} 的标题、描述、变更文件与 diff，
+   以及基分支名（baseRefName）。注意：agent 沙箱内没有 GitHub 凭证，请勿依赖 `gh` CLI。
+   据此理解本次新增的面向用户的功能或能力。
 2. 在 `docs/showcase/pr-${{ github.event.pull_request.number }}.html` 生成单个自包含 HTML 文件：
    - 内联全部 CSS（及必要的少量 JS），无需构建即可独立打开。
    - 包含：功能名称、一句话“是什么&为什么”、关键能力亮点、一个简单的使用/前后对比示例、
