@@ -14,11 +14,13 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const categoryLabels: Record<string, string> = CATEGORY_LABELS;
-const genderLabels: Record<string, string> = GENDER_LABELS;
-const sizeLabels: Record<string, string> = SIZE_LABELS;
-const speciesLabels: Record<string, string> = SPECIES_LABELS;
-const statusLabels: Record<string, string> = STATUS_LABELS;
+// Keep the precise enum-keyed types from pet-labels.ts (do not widen to
+// Record<string, string>) so a missing/renamed enum value fails to compile.
+const categoryLabels = CATEGORY_LABELS;
+const genderLabels = GENDER_LABELS;
+const sizeLabels = SIZE_LABELS;
+const speciesLabels = SPECIES_LABELS;
+const statusLabels = STATUS_LABELS;
 
 function isPresent(value: string | number | null | undefined) {
   return value !== null && value !== undefined && value !== "";

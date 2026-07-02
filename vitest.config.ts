@@ -10,9 +10,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     // Mirror the tsconfig `@/*` -> `./*` path alias so component tests can use it.
-    alias: {
-      "@": rootDir,
-    },
+    // Anchor on `@/` so scoped package imports (e.g. @testing-library/*) are
+    // never rewritten by a bare "@" key.
+    alias: [{ find: /^@\//, replacement: `${rootDir}/` }],
   },
   test: {
     environment: "jsdom",
