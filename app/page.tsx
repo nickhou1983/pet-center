@@ -26,6 +26,10 @@ export default function Home() {
       <div className="rounded-lg border border-foreground/10 px-4 py-2 text-xs text-foreground/50">
         M1 · 基础设施与项目脚手架已就绪
       </div>
+
+      <a className="text-sm text-blue-600 underline" href="/search">
+        前往混合搜索页
+      </a>
     </main>
   );
 }
