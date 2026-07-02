@@ -16,7 +16,7 @@ describe("POST /api/pets route handlers", () => {
       code: string,
       error: string,
       details?: Record<string, unknown>,
-    ) {
+    ): { status: number; body: Record<string, unknown> } {
       return {
         status,
         body: { error, code, ...details },
