@@ -93,7 +93,9 @@ docker-compose.yml   # 本地 PostgreSQL + pgvector
 
 **M2 · 数据层与数据模型已完成**：Prisma `Pet` 模型与枚举（category / species / size / gender / status）、`pets` 表迁移、`imageEmbedding vector(512)` 列与 `ivfflat` 余弦索引均已就绪；`lib/prisma.ts` 提供连接单例，`lib/vector.ts` 封装向量序列化与 `$queryRaw` 相似度检索（`imageEmbedding` 为 `Unsupported("vector(512)")`，读写走 `$queryRaw` / `$executeRaw`）。
 
-后续按模块 Issue（M3+）推进。
+**M3 · AI 向量服务（CLIP）已完成**：`lib/clip.ts` 封装 CLIP（`Xenova/clip-vit-base-patch32`）图文向量服务——`getTextEmbedding(text)` 与 `getImageEmbedding(input)` 均返回 512 维、L2 归一化的 `number[]`；图文共享同一向量空间，可直接做余弦相似度（`lib/vector.ts` 新增 `cosineSimilarity`）。模型经 transformers.js 加载并以进程内单例缓存，仅加载一次（首次运行从 Hugging Face Hub 下载 ~300MB 至 `TRANSFORMERS_CACHE`，默认 `./.cache`）；`next.config.mjs` 将 `onnxruntime-node` / `sharp` 等原生依赖标记为 server external，服务运行于 Node runtime。诊断自检路由 `GET /api/vector` 可验证向量维度、归一化与跨模态语义对齐，并演示单例缓存命中；也支持 `?text=` / `?image=` 探针自查。
+
+后续按模块 Issue（M4+）推进。
 
 ## 📄 License
 
