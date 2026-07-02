@@ -118,7 +118,9 @@ export default function PublishForm() {
         | null;
 
       if (response.status === 201 && result?.id) {
-        // Keep the button disabled while the detail page loads.
+        // Keep the submit button disabled through the redirect. router.push is a
+        // client-side navigation, so this form stays mounted until the detail
+        // page loads; re-enabling here would let the user fire a duplicate POST.
         router.push(`/pets/${result.id}`);
         return;
       }
@@ -129,6 +131,8 @@ export default function PublishForm() {
       } else {
         setBanner(result?.error ?? "发布失败，请稍后重试。");
       }
+      // Only re-enable on a failed submission so the user can retry.
+      setSubmitting(false);
     } catch (error) {
       const timedOut = error instanceof DOMException && error.name === "AbortError";
       setBanner(
@@ -136,9 +140,9 @@ export default function PublishForm() {
           ? "请求超时，请稍后重试（首次生成向量可能较慢）。"
           : "网络错误，请稍后重试。",
       );
+      setSubmitting(false);
     } finally {
       clearTimeout(timer);
-      setSubmitting(false);
     }
   }
 
