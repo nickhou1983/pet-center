@@ -1,11 +1,12 @@
+// This file is AI-generated for testing pet-schema.ts (M5).
+// Unit tests for the shared publish validation schema. Covers the required
+// fields (category, species, >=1 photo), optional-field normalization (trimming,
+// empty -> undefined, null -> undefined), age coercion/bounds, enum rejection,
+// path traversal protection, and photo-path shape/limit validation.
+
 import { describe, expect, it } from "vitest";
 
 import { createPetSchema, MAX_PHOTOS } from "../pet-schema";
-
-// Unit tests for the shared publish validation schema (M5). Covers the required
-// fields (category, species, >=1 photo), optional-field normalization (trimming,
-// empty -> undefined), age coercion/bounds, enum rejection, and photo-path
-// shape/limit validation.
 
 const validMinimal = {
   category: "LOST",

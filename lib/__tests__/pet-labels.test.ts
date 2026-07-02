@@ -1,3 +1,6 @@
+// This file is AI-generated for testing pet-labels.ts (M5).
+// Tests cover the label records for pet categories, species, sizes, genders, and statuses.
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,9 +10,6 @@ import {
   SPECIES_LABELS,
   STATUS_LABELS,
 } from "../pet-labels";
-
-// This file is AI-generated for testing pet-labels.ts (M5).
-// Tests cover the label records for pet categories, species, sizes, genders, and statuses.
 
 describe("pet-labels", () => {
   describe("CATEGORY_LABELS", () => {
