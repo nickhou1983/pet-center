@@ -1,3 +1,6 @@
+// This file is AI-generated for testing media.ts (M5).
+// Unit tests for media path resolution and content-type mapping for uploaded images.
+
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";

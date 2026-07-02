@@ -82,6 +82,7 @@ pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `C
 |------|------|------|
 | `GET` | `/api/health` | 健康检查 |
 | `POST` | `/api/upload` | 图片上传（`multipart/form-data`） |
+| `POST` | `/api/pets` | 发布宠物信息（校验 + 首图生成向量 + 入库） |
 | `POST` | `/api/search` | 混合搜索（图搜图 / 文搜图 / 融合加权） |
 
 ### `POST /api/upload`
@@ -110,6 +111,33 @@ pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `C
 
 ```bash
 curl -F "files=@cat.jpg" -F "files=@dog.png" http://localhost:3000/api/upload
+```
+
+### `POST /api/pets`
+
+发布一条宠物信息。先用 `POST /api/upload` 上传照片拿到 URL，再把结构化字段与 `photos`
+（`/uploads/*` 路径数组）作为 JSON 提交。首图会经 CLIP 生成 512 维图像向量，与记录在**同一个事务**内写入
+（向量列通过 `$executeRaw ... ::vector` 写入，因为 Prisma 将其标记为 `Unsupported("vector(512)")`）。
+向量在开启事务前生成，以避免推理期间长时间占用连接、并防止产生「无向量的孤儿行」。
+
+- **请求**：`application/json`
+  - 必填：`category`（`REGISTERED`/`LOST`/`FOUND`/`ADOPTION`）、`species`（`DOG`/`CAT`/`OTHER`）、`photos`（`/uploads/*`，至少 1 项）
+  - 可选：`size`、`gender`、`name`、`breed`、`color`、`age`、`region`、`description`、`contactName`、`contactPhone`
+- **成功响应** `201`：`{ "id", "category", "species", "photos", "embeddingDim": 512 }`
+- **错误响应**（JSON `{ "error", "code", ... }`）：
+  - `400 VALIDATION_ERROR` — 字段校验失败，附 `fieldErrors`（字段级消息）
+  - `400 INVALID_PHOTO` — `photos[0]` 不是合法的 `/uploads/*` 路径（含路径穿越防护）
+  - `404 PHOTO_NOT_FOUND` — 首图文件不存在
+  - `502 EMBEDDING_FAILED` — 向量生成失败（首次会下载 ~300MB CLIP 模型，较慢）
+  - `500 DB_ERROR` — 写库失败
+
+发布页 `/publish` 是受控表单，复用同一份 zod 校验模式（`lib/pet-schema.ts`）在客户端与服务端做一致校验；
+发布成功后跳转到最小详情页 `/pets/[id]`（完整浏览/展示为 M7）。
+
+```bash
+curl -X POST http://localhost:3000/api/pets \
+  -H "Content-Type: application/json" \
+  -d '{"category":"LOST","species":"DOG","photos":["/uploads/xxxx.jpg"],"region":"上海"}'
 ```
 
 ### `POST /api/search`
@@ -148,7 +176,9 @@ docker-compose.yml   # 本地 PostgreSQL + pgvector
 
 **M4 · 图片存储服务已完成**：`POST /api/upload` 支持 `multipart/form-data` 多图上传，按 JPEG / PNG / WebP 白名单（以 magic bytes 文件签名为准校验，不信任客户端声明的 MIME）及大小/数量上限校验，使用 UUID 文件名保存至 `public/uploads/` 并返回可访问 URL；`lib/storage.ts` 提供可平滑替换为对象存储（S3/OSS）的 `StorageProvider` 抽象，`lib/image-upload.ts` 封装校验逻辑，均有 Vitest 单元测试覆盖（`npm run test`）。
 
-后续按模块 Issue（M5+）推进。
+**M5 · 发布模块已完成**：`POST /api/pets` 接收 JSON（结构化字段 + `/uploads/*` 图片路径），用共享 zod 校验模式（`lib/pet-schema.ts`）在前后端一致校验，对首图经 CLIP 生成 512 维向量，并在**同一事务**内写入记录与向量列（`$executeRaw ... ::vector`）。发布页 `/publish` 为受控表单（分类切换、属性字段、多图上传对接 `/api/upload`、描述与联系方式、提交态 loading 与字段级错误提示），成功后跳转最小详情页 `/pets/[id]`；入库记录 `imageEmbedding` 非空且维度=512。`lib/pet-photos.ts` 负责把 `/uploads/*` 路径安全解析到磁盘（拒绝穿越/越权读取）；`lib/pet-schema.ts` / `lib/pet-photos.ts` 均有 Vitest 单元测试覆盖。
+
+后续按模块 Issue（M6+）推进。
 
 ## 📄 License
 
