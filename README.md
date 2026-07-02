@@ -82,6 +82,7 @@ pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `C
 |------|------|------|
 | `GET` | `/api/health` | 健康检查 |
 | `POST` | `/api/upload` | 图片上传（`multipart/form-data`） |
+| `POST` | `/api/search` | 混合搜索（图搜图 / 文搜图 / 融合加权） |
 
 ### `POST /api/upload`
 
@@ -110,6 +111,21 @@ pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `C
 ```bash
 curl -F "files=@cat.jpg" -F "files=@dog.png" http://localhost:3000/api/upload
 ```
+
+### `POST /api/search`
+
+统一搜索接口，支持图搜图、文搜图与融合检索（默认自动判断模式）：
+
+- **请求**：`multipart/form-data`（推荐）或 `application/json`
+  - 查询输入：`image`（文件）或 `imageUrl`（URL）与/或 `description`
+  - 筛选：`category`、`species`、`breed`、`color`、`size`、`region`
+  - 融合参数：`imageWeight`、`textWeight`（默认 0.6 / 0.4；自动归一化）
+  - 分页：`page`（默认 1）、`pageSize`（默认 20，最大 100）
+- **排序**：基于 pgvector 余弦距离 `<=>`，相似度分数为 `1 - distance`
+- **融合公式**：`score = w_img * sim_img + w_text * sim_text`
+- **响应**：返回 `mode`、`weights`、`page/pageSize/total/totalPages` 与结果列表（含 `score`、`simImage`、`simText`）
+
+前端搜索页：`/search`
 
 ## 📁 目录结构
 
