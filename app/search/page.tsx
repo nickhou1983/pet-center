@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import SearchForm from "@/components/search/SearchForm";
 
 export const metadata = {
@@ -8,23 +6,8 @@ export const metadata = {
 
 export default function SearchPage() {
   return (
-    <main className="min-h-screen bg-background px-5 py-8 text-foreground sm:px-8 lg:px-12">
+    <main className="flex-1 bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl">
-        <nav className="mb-6 flex flex-wrap items-center justify-between gap-3 text-sm">
-          <Link
-            href="/"
-            className="rounded-full border border-foreground/10 px-4 py-2 text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground"
-          >
-            ← 返回首页
-          </Link>
-          <Link
-            href="/publish"
-            className="rounded-full bg-foreground px-4 py-2 font-medium text-background transition-opacity hover:opacity-90"
-          >
-            发布宠物信息
-          </Link>
-        </nav>
-
         <header className="mb-8 space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">智能搜索</h1>
           <p className="text-sm text-foreground/60">

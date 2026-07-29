@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
@@ -65,23 +64,8 @@ export default async function PetDetailPage({
   ].filter(([, value]) => isPresent(value));
 
   return (
-    <main className="min-h-screen bg-background px-5 py-8 text-foreground sm:px-8 lg:px-12">
+    <main className="flex-1 bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <nav className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <Link
-            href="/"
-            className="rounded-full border border-foreground/10 px-4 py-2 text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground"
-          >
-            ← 返回首页
-          </Link>
-          <Link
-            href="/publish"
-            className="rounded-full bg-foreground px-4 py-2 font-medium text-background transition-opacity hover:opacity-90"
-          >
-            继续发布
-          </Link>
-        </nav>
-
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(340px,0.92fr)] lg:items-start">
           <div className="space-y-3">
             {photos.length > 0 ? (
@@ -158,7 +142,7 @@ export default async function PetDetailPage({
                     className="rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3"
                   >
                     <dt className="text-xs text-foreground/50">{label}</dt>
-                    <dd className="mt-1 text-sm font-medium text-foreground">
+                    <dd className="mt-1 break-words text-sm font-medium text-foreground">
                       {value}
                     </dd>
                   </div>
@@ -171,7 +155,7 @@ export default async function PetDetailPage({
                 <h2 className="text-sm font-semibold text-foreground/70">
                   描述
                 </h2>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-foreground/70">
+                <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-foreground/70">
                   {pet.description}
                 </p>
               </section>
@@ -180,7 +164,7 @@ export default async function PetDetailPage({
             {pet.contactName || pet.contactPhone ? (
               <section className="mt-8 rounded-2xl bg-foreground p-5 text-background">
                 <h2 className="text-sm font-semibold">联系方式</h2>
-                <div className="mt-3 space-y-2 text-sm text-background/80">
+                <div className="mt-3 space-y-2 break-words text-sm text-background/80">
                   {pet.contactName ? <p>联系人：{pet.contactName}</p> : null}
                   {pet.contactPhone ? <p>电话：{pet.contactPhone}</p> : null}
                 </div>

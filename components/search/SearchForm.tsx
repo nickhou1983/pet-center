@@ -221,7 +221,7 @@ export default function SearchForm() {
     <div className="grid gap-8 lg:grid-cols-[minmax(320px,380px)_1fr] lg:items-start">
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 lg:sticky lg:top-8"
+        className="space-y-6 lg:sticky lg:top-24"
         aria-label="混合搜索"
       >
         {banner ? (
@@ -309,7 +309,7 @@ export default function SearchForm() {
             属性筛选
           </legend>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="category">类别</Label>
               <select
@@ -472,7 +472,7 @@ export default function SearchForm() {
                 没有找到匹配的宠物，试试放宽属性筛选或调整描述。
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {results.map((result) => (
                   <ResultCard key={result.id} result={result} />
                 ))}
