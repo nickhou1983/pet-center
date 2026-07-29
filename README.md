@@ -53,20 +53,40 @@ CLIP 将**图片**与**文字**投影到同一 512 维向量空间，因此：
 # 1. 安装依赖
 npm install
 
-# 2. 配置环境变量（复制模板）
+# 2. 配置环境变量（复制模板；Windows PowerShell 用 Copy-Item .env.example .env）
 cp .env.example .env
 
 # 3. 启动 PostgreSQL + pgvector 容器
-docker compose up -d
+npm run db:up
 
 # 4. 应用数据库迁移（创建 pets 表、vector(512) 列与 ivfflat 索引）
 npm run db:deploy
 
-# 5. 启动开发服务器
+# 5. 写入种子数据（16 条示例宠物 + 预生成图像向量;
+#    首次运行会从 Hugging Face 下载 ~300MB CLIP 模型，耗时较长）
+npm run db:seed
+
+# 6. 启动开发服务器
 npm run dev
 ```
 
 访问 http://localhost:3000 查看首页；`GET /api/health` 可用于健康检查。
+
+> `docker compose up -d` 返回后容器仍需数秒完成初始化；若第 4/5 步报数据库连接失败,
+> 稍等片刻重试,或用 `docker exec pet-center-db pg_isready -U petcenter` 确认就绪。
+
+### 常用脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` / `build` / `start` | 开发 / 构建 / 生产启动 |
+| `npm run test` | Vitest 单元测试 |
+| `npm run lint` | ESLint 检查 |
+| `npm run db:up` | 启动 PostgreSQL + pgvector 容器（docker compose up -d） |
+| `npm run db:migrate` | 开发迁移（prisma migrate dev） |
+| `npm run db:deploy` | 应用迁移（prisma migrate deploy） |
+| `npm run db:seed` | 写入/更新种子数据（`-- --force` 强制重算向量） |
+| `npm run db:studio` | Prisma Studio 数据浏览 |
 
 数据库默认连接（见 `.env.example` 与 `docker-compose.yml`）：
 
@@ -75,6 +95,48 @@ postgresql://petcenter:petcenter@localhost:5432/petcenter
 ```
 
 pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `CREATE EXTENSION IF NOT EXISTS "vector"`（见 `prisma/migrations/`），因此无需手动启用。
+
+## 🌱 种子数据
+
+`npm run db:seed`（即 `prisma db seed`，经 `tsx` 运行 `prisma/seed.ts`）会写入 **16 条示例宠物**,
+覆盖全部 4 个类别与多物种/品种/毛色/体型/地区,便于演示属性筛选与相似度匹配:
+
+| 类别 | 数量 | 示例 |
+|------|------|------|
+| 备案 REGISTERED | 7 | 金毛、柯基、哈士奇、橘猫、英短、奶牛猫、垂耳兔 |
+| 走失 LOST | 3 | 比熊、柴犬、虎斑猫 |
+| 捡到 FOUND | 3 | 虎斑纹田园犬、玳瑁猫、橘白奶猫 |
+| 领养 ADOPTION | 3 | 黑色拉布拉多、三花猫、金丝熊 |
+
+- 种子记录使用确定性 `seed-` 前缀 id,**幂等可重复执行**:字段每次同步更新,已有 512 维向量的记录默认跳过
+  CLIP 推理(秒级完成);`npm run db:seed -- -- --force` 强制重新生成全部向量。
+- 向量与线上发布流程**复用同一个 CLIP 服务**(`lib/clip.ts`)生成,保证检索行为一致;首次运行需下载 ~300MB 模型。
+- 演示技巧:CLIP 文本编码器以英文语料训练,**英文描述**(如 `a golden retriever dog`)或**上传照片**(图搜图)
+  的匹配效果最好;中文描述可正常返回结果但相关性排序较弱,建议演示时配合属性筛选使用。
+
+### 示例图片来源与版权
+
+示例图片位于 `public/seed/`,均来自 [Wikimedia Commons](https://commons.wikimedia.org/),
+许可为 Public Domain / CC0 / CC BY(无 ShareAlike 义务);所有图片已缩放/压缩(≤800px)。CC BY 图片按要求署名如下:
+
+| 文件 | 作者 | 许可 | 来源 |
+|------|------|------|------|
+| dog-golden-retriever.jpg | Kintaiyo | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Golden_Retriever_Hund_Dog.JPG) |
+| dog-corgi.jpg | Huoadg5888 | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Fawn_and_white_Welsh_Corgi_puppy_standing_on_rear_legs_and_sticking_out_the_tongue.jpg) |
+| dog-husky.jpg | milanonegro (Pixabay) | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Siberian-husky-1291343_1920.jpg) |
+| dog-bichon.jpg | Dawn Huczek | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Did_you_call_me.jpg) |
+| dog-shiba-inu.jpg | Picography | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Picography-shiba-inu-dog-forest-walk-sm-1.jpg) |
+| dog-mixed-brindle.jpg | Cho Hsun Lu | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Dog_With_Yellow_Rapeseed_(242833099).jpeg) |
+| dog-labrador-black.jpg | Aciarium | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:DSC09611a_Search_and_Rescue_Dog,_Austrian_Red_Cross_Perchtoldsdorf,_2024-10.jpg) |
+| cat-orange-tabby.jpg | LauraDelga | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Orange_Tabby_Cat_sitting_on_a_couch.jpg) |
+| cat-british-shorthair.jpg | Namngocnghech | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:My_British_Shorthair_cat_%F0%9F%90%88%E2%80%8D%E2%AC%9B.jpg) |
+| cat-tuxedo.jpg | 4300streetcar | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Tuxedo_patterned_black_mackerel_tabby_and_white_cat.jpg) |
+| cat-tabby.jpg | George Chernilevsky | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Brown_tabby_cat_2018_G1.jpg) |
+| cat-tortoiseshell.jpg | Vyacheslav Argenberg | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Tha_Ton,_Siamese_cat,_Thailand.jpg) |
+| cat-kitten.jpg | Marie-Lan Nguyen | CC BY 2.5 | [Commons](https://commons.wikimedia.org/wiki/File:Golden_tabby_and_white_kitten_n01.jpg) |
+| cat-calico.jpg | ولاء | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Calico_cat,_Lebanon_1.jpg) |
+| rabbit-lop.jpg | shankar s. | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:A_normal_and_a_Holland_Lop_rabbit_(16258337087).jpg) |
+| hamster-golden.jpg | Wschlitz | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Juvenile_Female_Mesocricetus_auratus_in_Pet_Store_enclosure,_Illinois,_USA.jpg) |
 
 ## 🔌 API 接口
 
@@ -178,10 +240,10 @@ curl -X POST http://localhost:3000/api/search \
 
 ```
 app/                 # Next.js App Router 页面与 API 路由（Node runtime）
-components/           # 共享 React 组件
+components/           # 共享 React 组件（layout / publish / search）
 lib/                 # 共享工具与客户端封装
-prisma/              # Prisma schema、枚举与迁移（Pet 模型 + pgvector）
-public/              # 静态资源（uploads/ 为运行时用户上传目录）
+prisma/              # Prisma schema、迁移与种子脚本（seed.ts / seed-data.ts）
+public/              # 静态资源（uploads/ 运行时上传；seed/ 种子示例图片）
 docker-compose.yml   # 本地 PostgreSQL + pgvector
 ```
 
@@ -199,7 +261,9 @@ docker-compose.yml   # 本地 PostgreSQL + pgvector
 
 **M6 · 混合搜索模块已完成**：`POST /api/search` 接收 JSON（`/uploads/*` 查询照片和/或文字描述 + 属性筛选 + 分页），用共享 zod 校验模式（`lib/search-schema.ts`）前后端一致校验。查询图/文经 CLIP 生成 512 维向量，均对宠物的 `imageEmbedding` 列做 pgvector 余弦相似度（`<=>`，`score = 1 - distance`）；融合分数在 SQL 内按权重计算，保证 DB 侧 `ORDER BY score DESC` 与 `LIMIT/OFFSET` 分页正确，并返回逐模态 `imageScore`/`textScore`。模式由输入自动判定（图搜图 / 文搜图 / 加权融合），权重经 `resolveWeights` 归一化（`lib/pet-search.ts` 构建全参数化的筛选与排序 SQL，杜绝注入；枚举精确匹配、自由文本 `ILIKE` 转义通配符）。搜索页 `/search` 为受控表单（照片上传、描述、属性筛选[默认类别「备案」]、两路输入时显示融合权重滑块、结果卡片网格与分页），首页新增「智能搜索」入口。`lib/search-schema.ts` / `lib/pet-search.ts` / `components/search/SearchForm.tsx` 均有 Vitest 单元测试覆盖。
 
-后续按模块 Issue（M7+）推进。
+**M8 · 数据初始化与文档收尾已完成**：`npm run db:seed` 种子脚本（`prisma/seed.ts` + `prisma/seed-data.ts`，经 `tsx` 运行）写入 16 条覆盖 4 类别、多物种/品种的示例宠物，图片放 `public/seed/`（Wikimedia Commons，PD/CC0/CC BY，见「种子数据」章节署名表），向量复用 `lib/clip.ts` 与线上一致，确定性 `seed-` id 幂等可重跑（已有向量默认跳过推理，`-- --force` 强制重算）；种子数据完整性有 Vitest 单测（`lib/__tests__/seed-data.test.ts`）。UI 整体打磨：共享导航头 `components/layout/SiteHeader.tsx` + 全局 footer、首页扩充为分类卡片着陆页、全局中文 404 页、统一页面容器与移动端（375px）响应式细节。新增脚本 `db:up` / `db:seed`。
+
+**待办**:M7 · 浏览与展示模块（`/pets` 分类列表页,见 PR #27)尚未合并;当前「浏览样例」由搜索页 `/search` 与详情页 `/pets/[id]` 承载。
 
 ## 📄 License
 
