@@ -76,21 +76,22 @@ function createData(pet: SeedPet): PetCreateData {
 }
 
 function updateData(pet: SeedPet): PetUpdateData {
+  // update 中 undefined 表示"保持原值",可选字段需显式置 null 才能真正同步
   return {
     category: pet.category,
     species: pet.species,
-    size: pet.size,
+    size: pet.size ?? null,
     gender: pet.gender,
     status: "ACTIVE",
-    name: pet.name,
-    breed: pet.breed,
-    color: pet.color,
-    age: pet.age,
-    region: pet.region,
+    name: pet.name ?? null,
+    breed: pet.breed ?? null,
+    color: pet.color ?? null,
+    age: pet.age ?? null,
+    region: pet.region ?? null,
     description: pet.description,
     photos: pet.photos,
-    contactName: pet.contactName,
-    contactPhone: pet.contactPhone,
+    contactName: pet.contactName ?? null,
+    contactPhone: pet.contactPhone ?? null,
   };
 }
 
