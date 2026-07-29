@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { Prisma, PrismaClient } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+} from "@prisma/client/runtime/library";
 
 import { getImageEmbedding } from "../lib/clip";
 import { toVectorLiteral } from "../lib/vector";
@@ -100,8 +103,21 @@ async function hasExistingEmbedding(id: string): Promise<boolean> {
   return rows[0]?.hasEmbedding ?? false;
 }
 
+function isDatabaseUnreachable(error: unknown): boolean {
+  // 连接失败在客户端初始化阶段抛 PrismaClientInitializationError,
+  // 已初始化后的查询阶段抛 PrismaClientKnownRequestError(code)。
+  // 实测 Prisma 5.22 初始化错误的 errorCode 可能为 undefined,需按消息兜底。
+  if (error instanceof PrismaClientInitializationError) {
+    return (
+      error.errorCode === "P1001" ||
+      error.message.includes("Can't reach database server")
+    );
+  }
+  return error instanceof PrismaClientKnownRequestError && error.code === "P1001";
+}
+
 function printDatabaseHint(error: unknown): void {
-  if (error instanceof PrismaClientKnownRequestError && error.code === "P1001") {
+  if (isDatabaseUnreachable(error)) {
     console.error(
       "数据库连接失败。请先运行 npm run db:up，并等待 PostgreSQL 容器就绪后再执行 npm run db:seed。",
     );

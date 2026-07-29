@@ -79,7 +79,7 @@ npm run dev
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev` / `build` / `start` | 开发 / 构建 / 生产启动 |
+| `npm run dev` / `npm run build` / `npm run start` | 开发 / 构建 / 生产启动 |
 | `npm run test` | Vitest 单元测试 |
 | `npm run lint` | ESLint 检查 |
 | `npm run db:up` | 启动 PostgreSQL + pgvector 容器（docker compose up -d） |
@@ -121,22 +121,22 @@ pgvector 官方镜像已内置 `vector` 扩展；Prisma 迁移会自动执行 `C
 
 | 文件 | 作者 | 许可 | 来源 |
 |------|------|------|------|
-| dog-golden-retriever.jpg | Kintaiyo | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Golden_Retriever_Hund_Dog.JPG) |
-| dog-corgi.jpg | Huoadg5888 | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Fawn_and_white_Welsh_Corgi_puppy_standing_on_rear_legs_and_sticking_out_the_tongue.jpg) |
-| dog-husky.jpg | milanonegro (Pixabay) | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Siberian-husky-1291343_1920.jpg) |
-| dog-bichon.jpg | Dawn Huczek | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Did_you_call_me.jpg) |
-| dog-shiba-inu.jpg | Picography | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Picography-shiba-inu-dog-forest-walk-sm-1.jpg) |
-| dog-mixed-brindle.jpg | Cho Hsun Lu | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Dog_With_Yellow_Rapeseed_(242833099).jpeg) |
-| dog-labrador-black.jpg | Aciarium | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:DSC09611a_Search_and_Rescue_Dog,_Austrian_Red_Cross_Perchtoldsdorf,_2024-10.jpg) |
-| cat-orange-tabby.jpg | LauraDelga | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Orange_Tabby_Cat_sitting_on_a_couch.jpg) |
-| cat-british-shorthair.jpg | Namngocnghech | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:My_British_Shorthair_cat_%F0%9F%90%88%E2%80%8D%E2%AC%9B.jpg) |
-| cat-tuxedo.jpg | 4300streetcar | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Tuxedo_patterned_black_mackerel_tabby_and_white_cat.jpg) |
+| dog-golden-retriever.jpg | Kintaiyo | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Golden_Retriever_Hund_Dog.JPG) |
+| dog-corgi.jpg | Huoadg5888 | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Fawn_and_white_Welsh_Corgi_puppy_standing_on_rear_legs_and_sticking_out_the_tongue.jpg) |
+| dog-husky.jpg | milanonegro (Pixabay) | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Siberian-husky-1291343_1920.jpg) |
+| dog-bichon.jpg | Dawn Huczek | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Did_you_call_me.jpg) |
+| dog-shiba-inu.jpg | Picography | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Picography-shiba-inu-dog-forest-walk-sm-1.jpg) |
+| dog-mixed-brindle.jpg | Cho Hsun Lu | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Dog_With_Yellow_Rapeseed_(242833099).jpeg) |
+| dog-labrador-black.jpg | Aciarium | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:DSC09611a_Search_and_Rescue_Dog,_Austrian_Red_Cross_Perchtoldsdorf,_2024-10.jpg) |
+| cat-orange-tabby.jpg | LauraDelga | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Orange_Tabby_Cat_sitting_on_a_couch.jpg) |
+| cat-british-shorthair.jpg | Namngocnghech | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:My_British_Shorthair_cat_%F0%9F%90%88%E2%80%8D%E2%AC%9B.jpg) |
+| cat-tuxedo.jpg | 4300streetcar | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Tuxedo_patterned_black_mackerel_tabby_and_white_cat.jpg) |
 | cat-tabby.jpg | George Chernilevsky | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Brown_tabby_cat_2018_G1.jpg) |
-| cat-tortoiseshell.jpg | Vyacheslav Argenberg | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Tha_Ton,_Siamese_cat,_Thailand.jpg) |
-| cat-kitten.jpg | Marie-Lan Nguyen | CC BY 2.5 | [Commons](https://commons.wikimedia.org/wiki/File:Golden_tabby_and_white_kitten_n01.jpg) |
+| cat-tortoiseshell.jpg | Vyacheslav Argenberg | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Tha_Ton,_Siamese_cat,_Thailand.jpg) |
+| cat-kitten.jpg | Marie-Lan Nguyen | [CC BY 2.5](https://creativecommons.org/licenses/by/2.5/) | [Commons](https://commons.wikimedia.org/wiki/File:Golden_tabby_and_white_kitten_n01.jpg) |
 | cat-calico.jpg | ولاء | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Calico_cat,_Lebanon_1.jpg) |
-| rabbit-lop.jpg | shankar s. | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:A_normal_and_a_Holland_Lop_rabbit_(16258337087).jpg) |
-| hamster-golden.jpg | Wschlitz | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Juvenile_Female_Mesocricetus_auratus_in_Pet_Store_enclosure,_Illinois,_USA.jpg) |
+| rabbit-lop.jpg | shankar s. | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | [Commons](https://commons.wikimedia.org/wiki/File:A_normal_and_a_Holland_Lop_rabbit_(16258337087).jpg) |
+| hamster-golden.jpg | Wschlitz | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Commons](https://commons.wikimedia.org/wiki/File:Juvenile_Female_Mesocricetus_auratus_in_Pet_Store_enclosure,_Illinois,_USA.jpg) |
 
 ## 🔌 API 接口
 
