@@ -16,7 +16,12 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["lib/**/*.test.ts", "components/**/*.test.tsx", "app/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "components/**/*.test.tsx",
+      "app/**/*.test.ts",
+      "prisma/**/*.test.ts",
+    ],
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },
